@@ -34,7 +34,7 @@ export default async ({ req, res, log, error }) => {
     return res.json({ error: 'Unsupported action' }, 400);
   }
 
-  const { audioUrl } = payload;
+  const { audioUrl, language } = payload;
   if (!audioUrl) {
     return res.json({ error: 'audioUrl is required' }, 400);
   }
@@ -48,7 +48,13 @@ export default async ({ req, res, log, error }) => {
       },
       body: JSON.stringify({
         version: WHISPER_MODEL_VERSION,
-        input: { audio: audioUrl },
+        input: {
+          audio: audioUrl,
+          // Kasih hint bahasa eksplisit (kalau dikirim client) supaya Whisper
+          // tidak auto-detect per-segmen -- itu penyebab model kadang
+          // "lompat" bahasa di tengah transkrip pada audio pendek/ambigu.
+          ...(language ? { language } : {}),
+        },
       }),
     });
 
